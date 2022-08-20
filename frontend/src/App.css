@@ -1,0 +1,23 @@
+.App {
+  margin: 2rem;
+}
+
+table, th, td {
+  border: 1px solid black;
+  text-align: left;
+}
+
+th {
+  color: rgb(153, 184, 108);
+}
+
+input {
+  border: none;
+  color: red;
+}
+
+button {
+  background-color: rgb(153, 184, 108);
+  margin: 1rem;
+}
+
