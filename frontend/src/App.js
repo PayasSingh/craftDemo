@@ -1,161 +1,205 @@
 import React, { useState, useEffect } from "react"
 import './App.css';
+import {netWorthData} from './data';
+
 
 function App() {
 
   // state variable for data
-  const [data, setData] = useState([])
-  const [currencyCode, setCurrencyCode] = useState('CAD');
-  const [currencySymbol, setCurrencySymbol] = useState('$');
+  const [data, setData] = useState(netWorthData)
 
-  // GET request
-  const fetchAssets = () => {
-    fetch(`http://localhost:5000/-net-worth/users/150397569105386686797786709197469348192/assets/`, {mode:"cors"})
-      .then(res => res.json())
-      .then(json => setData(json))
-  }
-
-  // PUT request for currency change
-  const fetchCurrency = (data) => {
-    console.log(JSON.stringify(data))
-    fetch("http://localhost:5000/-net-worth/users/150397569105386686797786709197469348192/", {
-      method: "put",
-      mode: "cors",
-      body: JSON.stringify(data),
-      headers: {
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "PUT",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization",
-        "Access-Control-Max-Age" : 86400,
-        "Access-Control-Allow-Private-Network": true
-      }
-    })
-    .then(res => res.json())
-  }
-
+  // everytime data changes, update all field values
   useEffect(() => {
-    // fetchAssets();
-  }, []);
 
-  const createAssets = () => {
-    // assets
-    var assetsData = {};
+    if (data.userId !== null) {
+      document.getElementById("userId").value = data.userId;
+    }
 
-    var cashAndInvestmentsData = {};
-    cashAndInvestmentsData.chequing = document.getElementById("chequingInput").value;
-    cashAndInvestmentsData.savingsForTaxes = document.getElementById("savingsForTaxesInput").value;
-    cashAndInvestmentsData.rainyDayFund = document.getElementById("rainyDayFundInput").value;
-    cashAndInvestmentsData.savingsForFun = document.getElementById("savingsForFunInput").value;
-    cashAndInvestmentsData.savingsForTravel = document.getElementById("savingsForTravelInput").value;
-    cashAndInvestmentsData.savingsForPersonalDevelopment = document.getElementById("savingsForPersonalDevelopmentInput").value;
-    cashAndInvestmentsData.investment1 = document.getElementById("investment1Input").value;
-    cashAndInvestmentsData.investment2 = document.getElementById("investment2Input").value;
-    cashAndInvestmentsData.investment3 = document.getElementById("investment3Input").value;
+    document.getElementById("chequing").value = data.assets.cashAndInvestments.chequing;
+    document.getElementById("savingsForTaxes").value =  data.assets.cashAndInvestments.savingsForTaxes;
+    document.getElementById("rainyDayFund").value = data.assets.cashAndInvestments.rainyDayFund;
+    document.getElementById("savingsForFun").value = data.assets.cashAndInvestments.savingsForFun;
+    document.getElementById("savingsForTravel").value =data.assets.cashAndInvestments.savingsForTravel;
+    document.getElementById("savingsForPersonalDevelopment").value = data.assets.cashAndInvestments.savingsForPersonalDevelopment;
+    document.getElementById("investment1").value = data.assets.cashAndInvestments.investment1;
+    document.getElementById("investment2").value = data.assets.cashAndInvestments.investment2;
+    document.getElementById("investment3").value = data.assets.cashAndInvestments.investment3
 
-    var longTermAssetsData = {};
-    longTermAssetsData.primaryHome = document.getElementById("primaryHomeInput").value;
-    longTermAssetsData.secondHome = document.getElementById("secondHomeInput").value;
-    longTermAssetsData.other = document.getElementById("otherInput").value;
+    document.getElementById("primaryHome").value = data.assets.longTermAssets.primaryHome;
+    document.getElementById("secondHome").value = data.assets.longTermAssets.secondHome;
+    document.getElementById("other").value = data.assets.longTermAssets.other;
 
-    assetsData.cashAndInvestments = cashAndInvestmentsData;
-    assetsData.longTermAssets = longTermAssetsData;
+    document.getElementById("totalAssets").innerHTML = data.currency.currencySymbol + data.assets.totalAssets;
 
-    return assetsData;
-  }
-
-  const createLiabilities = () => {
     // liabilities
-    var liabilities = {}
-    var shortTermLiabilities = {};
-    shortTermLiabilities.creditCard1 = document.getElementById("creditCard1Input").value;
-    shortTermLiabilities.creditCard2 = document.getElementById("creditCard2Input").value;
+    document.getElementById("creditCard1").value = data.liabilities.shortTermLiabilities.creditCard1;
+    document.getElementById("creditCard2").value = data.liabilities.shortTermLiabilities.creditCard2;
 
-    var longTermDebt = {};
-    longTermDebt.mortgage1 = document.getElementById("mortgage1Input").value;
-    longTermDebt.mortgage2 = document.getElementById("mortgage2Input").value;
-    longTermDebt.lineOfCredit = document.getElementById("lineOfCreditInput").value;
-    longTermDebt.investmentLoan = document.getElementById("investmentLoanInput").value;
+    document.getElementById("mortgage1").value = data.liabilities.longTermDebt.mortgage1;
+    document.getElementById("mortgage2").value = data.liabilities.longTermDebt.mortgage2;
+    document.getElementById("lineOfCredit").value = data.liabilities.longTermDebt.lineOfCredit;
+    document.getElementById("investmentLoan").value = data.liabilities.longTermDebt.investmentLoan;
 
-    liabilities.shortTermLiabilities = shortTermLiabilities;
-    liabilities.longTermDebt = longTermDebt;
+    document.getElementById("totalLiabilities").innerHTML = data.currency.currencySymbol + data.liabilities.totalLiabilities;
 
-    return liabilities;
-  }
 
-  const createCurrency = () => {
-    var currencyData = {};
-    currencyData.currencyCode = currencyCode;
-    currencyData.currencySymbol = currencySymbol;
-
-    return currencyData;
-  }
+  }, [data]);
 
   // POST: the data should consist of assets + liabilities + currency
   // other REQ: assets + liabilities + currency + userId
-  const createData = (requestType) => {
+  const createData = (requestType, dataType=null) => {
+    // reate a JSON object for request
 
-    // get the user data
-    let assets = createAssets();
-    let liabilities = createLiabilities();
-    let currency = createCurrency()
-
-    // create a JSON object for request
-    let data = {}
-    data.assets = assets;
-    data.liabilities = liabilities;
-    data.currency = currency;
-
-    if (requestType !== "POST") {
-      // hardcoded user
-      data.userId = 150397569105386686797786709197469348192
+    if (requestType === "POST") {
+      return data
     }
-    return data
+
+    if (dataType === null) {
+      // currency exchange
+      return data
+    }
+
+    let reqData = {};
+    reqData.userId = data.userId;
+    reqData.currency = data.currency;
+    if (dataType === "assets") {
+      reqData.assets = data.assets;
+    } else {
+      reqData.liabilities = data.liabilities;
+    }
+    return reqData
   }
 
-  // POST request - made when the page loads initially
+  const fetchUser = (userId) => {
+    if (userId === ''){
+      console.log("No user Id provided")
+      return
+    }
+    var apiCall = "http://localhost:5000/-net-worth/users/" + userId + "/"
+    fetch(apiCall, {
+      method: "GET",
+      mode : "cors"
+    })
+    .then(res => {
+      if (res.ok) {
+        return res.json()
+      }
+      return Promise.reject(res)})
+    .then(json => setData(json))
+    .catch((error) => {
+      console.log(error.status, error.statusText)
+      error.json().then((json) => {
+        console.log(json.errorMsg)
+      })
+    })
+  }
+
+    // POST request - made when the page loads initially
   // should recieve calculated totals - display them
-  // data = urserId + currency +
-  const fetchTotals = () => {
-    let reqData = createData("POST");
-    console.log(reqData);
-    fetch("http://localhost:5000/-net-worth/assets/", {
-      method: "POST",
+  // data = urserId + currency + assets + liabilities
+  const fetchTotals = (requestType, apiCall, dataType=null) => {
+    /// make api call
+    let reqData = createData(requestType, dataType);
+    if (requestType !== "POST" && reqData.userId === undefined){
+      console.log("No user Id provided")
+      return
+    }
+    fetch(apiCall, {
+      method: requestType,
       mode : "cors",
       body: JSON.stringify(reqData)
     })
-    .then(res => res.json())
+    .then(res => {
+      if (res.ok) {
+        return res.json()
+      }
+      return Promise.reject(res)})
     .then(json => setData(json))
-    .then(console.log(data))
+    .catch((error) => {
+      console.log(error.status, error.statusText)
+      error.json().then((json) => {
+        console.log(json.errorMsg)
+      })
+    })
+  }
+
+  // PUT request for currency change
+  const fetchCurrency = () => {
+    let reqData = createData("PUT");
+    if (reqData.userId === undefined){
+      console.log("No user Id provided")
+      return
+    }
+    var apiCall = "http://localhost:5000/-net-worth/users/" + data.userId + "/";
+    fetch(apiCall, {
+      method: "PUT",
+      mode: "cors",
+      body: JSON.stringify(reqData)
+    })
+    .then(res => {
+      if (res.ok) {
+        return res.json()
+      }
+      return Promise.reject(res)})
+    .then(json => setData(json))
+    .catch((error) => {
+      console.log(error.status, error.statusText)
+      error.json().then((json) => {
+        console.log(json.errorMsg)
+      })
+    })
+  }
+
+  const checkKeyPressed = (e, dataType) => {
+    /// checks which key was entered by user,
+    /// if "enter", this function will call the API
+    if (e.keyCode === 13) {
+      e.preventDefault();
+      let inputValue = e.target.value
+      data[dataType][e.target.name][e.target.id] = inputValue ? inputValue : 0.00;
+      var api = "http://localhost:5000/-net-worth/users/" + data.userId + "/" + dataType+ "/";
+      fetchTotals("PUT", api, dataType)
+    }
   }
 
   const handleDropDown = (e) => {
-    setCurrencyCode(e.target.value);
-    let assets = createAssets();
-    let currency = createCurrency();
-    var data = {};
-    data.assets = assets;
-    data.currency = currency;
-    fetchCurrency(data);
+    data.currency.currencyCode = e.target.value;
+    fetchCurrency();
+  }
+
+  const handleSubmit = (e) => {
+    if (e.keyCode === 13) {
+      fetchUser(e.target.value)
+    }
   }
 
   return (
     <div className="App">
       <h1>Tracking Your Networth</h1>
-      {/* TODO: add currency dropdown here */}
+      <div className="userId">
+        <p>User Id:</p>
+        <input id="userId" type="number" style={{border: '3px solid red'}} onKeyDown={(e) => handleSubmit(e)}></input>
+      </div>
+      <br></br>
       <div className="dropDown">
         <label>
-          <select value={currencyCode} onChange={handleDropDown}>
+          <select value={data.currency.currencyCode} onChange={handleDropDown}>
             <option value="CAD">CAD</option>
             <option value="INR">INR</option>
             <option value="USD">USD</option>
+            <option value="EUR">EUR</option>
+            <option value="CHF">CHF</option>
+            <option value="GBP">GBP</option>
+            <option value="SGD">SGD</option>
+            <option value="AUD">AUD</option>
+            <option value="NZD">NZD</option>
+            <option value="BRL">BRL</option>
           </select>
         </label>
       </div>
       {/* TODO: make total net worth here side by side */}
-      <div>
-        <h3>Total Networth</h3>
-        <p>232323.00</p>
+      <div className="totalNetWorthDiv">
+        <p className="totals"> <b>Total Networth:</b> {data.netWorth}</p>
       </div>
       <h3>Assets</h3>
           <table>
@@ -165,62 +209,61 @@ function App() {
               </tr>
               <tr>
                 <td>Chequing</td>
-                <td><div>$<input type="text" id="chequingInput" name="chequingInput" defaultValue={2000.00} required></input></div></td>
+                <td><div className="inputField">{data.currency.currencySymbol}<input type="number" id="chequing" name="cashAndInvestments" onKeyDown={(e) => checkKeyPressed(e, "assets")}></input></div></td>
               </tr>
               <tr>
                 <td>Savings for Taxes</td>
-                <td><div>$<input type="text" id="savingsForTaxesInput" name="savingsForTaxes" defaultValue={4000.00}></input></div></td>
+                <td className="inputField"><div>{data.currency.currencySymbol}<input type="number" id="savingsForTaxes" name="cashAndInvestments"  onKeyDown={(e) => checkKeyPressed(e, "assets")}></input></div></td>
               </tr>
               <tr>
                 <td>Rainy Day Fund</td>
-                <td><div>$<input type="text" id="rainyDayFundInput" name="rainyDayFund" defaultValue={506.00}></input></div></td>
+                <td className="inputField"><div>{data.currency.currencySymbol}<input type="number" id="rainyDayFund" name="cashAndInvestments" onKeyDown={(e) => checkKeyPressed(e, "assets")}></input></div></td>
               </tr>
               <tr>
                 <td>Savings for Fun</td>
-                <td><div>$<input type="text" id="savingsForFunInput" name="savingsForFun" defaultValue={5000.00}></input></div></td>
+                <td className="inputField"><div>{data.currency.currencySymbol}<input type="number" id="savingsForFun" name="cashAndInvestments" onKeyDown={(e) => checkKeyPressed(e, "assets")}></input></div></td>
               </tr>
               <tr>
                 <td>Savings for Travel</td>
-                <td><input type="text" id="savingsForTravelInput" name="savingsForTravel" defaultValue={400.00}></input></td>
+                <td className="inputField"><div>{data.currency.currencySymbol}<input type="number" id="savingsForTravel" name="cashAndInvestments" onKeyDown={(e) => checkKeyPressed(e, "assets")}></input></div></td>
               </tr>
               <tr>
                 <td>Savings for Personal Development</td>
-                <td><input type="text" id="savingsForPersonalDevelopmentInput" name="savingsForPersonalDevelopment" defaultValue={200.00}></input></td>
+                <td className="inputField"><div>{data.currency.currencySymbol}<input type="number" id="savingsForPersonalDevelopment" name="cashAndInvestments" onKeyDown={(e) => checkKeyPressed(e, "assets")}></input></div></td>
               </tr>
               <tr>
                 <td>Investment 1</td>
-                <td><input type="text" id="investment1Input" name="investment1" defaultValue={5000.00}></input></td>
+                <td className="inputField"><div>{data.currency.currencySymbol}<input type="number" id="investment1" name="cashAndInvestments" onKeyDown={(e) => checkKeyPressed(e, "assets")}></input></div></td>
               </tr>
               <tr>
                 <td>Investment 2</td>
-                <td><input type="text" id="investment2Input" name="investment2" defaultValue={60000.00}></input></td>
+                <td className="inputField"><div>{data.currency.currencySymbol}<input type="number" id="investment2" name="cashAndInvestments" onKeyDown={(e) => checkKeyPressed(e, "assets")}></input></div></td>
               </tr>
               <tr>
                 <td>Investment 3</td>
-                <td><input type="text" id="investment3Input" name="investment3" defaultValue={24000.00}></input></td>
+                <td className="inputField"><div>{data.currency.currencySymbol}<input type="number" id="investment3" name="cashAndInvestments" onKeyDown={(e) => checkKeyPressed(e, "assets")}></input></div></td>
               </tr>
               <tr>
                 <th>Long Term Assets</th>
               </tr>
               <tr>
                 <td>Primary Home</td>
-                <td><input type="text" id="primaryHomeInput" name="primaryHome" defaultValue={455000.00}></input></td>
+                <td  className="inputField"><div>{data.currency.currencySymbol}<input type="number" id="primaryHome" name="longTermAssets" onKeyDown={(e) => checkKeyPressed(e, "assets")}></input></div></td>
               </tr>
               <tr>
                 <td>Second Home</td>
-                <td><input type="text" id="secondHomeInput" name="secondHome" defaultValue={1564321.00}></input></td>
+                <td className="inputField"><div>{data.currency.currencySymbol}<input type="number" id="secondHome" name="longTermAssets" onKeyDown={(e) => checkKeyPressed(e, "assets")}></input></div></td>
               </tr>
               <tr>
                 <td>Other</td>
-                <td><input type="text" id="otherInput" name="other" defaultValue={0.00}></input></td>
+                <td className="inputField"><div>{data.currency.currencySymbol}<input type="number" id="other" name="longTermAssets" onKeyDown={(e) => checkKeyPressed(e, "assets")}></input></div></td>
               </tr>
               <tr>
                 <th>Total Assets</th>
-                <td id="totalAssets">0.00</td>
+                <td id="totalAssets" className="totals"></td>
               </tr>
             </tbody>
         </table>
-        <button onClick={() => createAssets()}> Calculate Assets </button>
       <h3>Liabilities</h3>
       <table>
         <tbody>
@@ -231,12 +274,12 @@ function App() {
           <tr>
             <td>Credit Card 1</td>
             <td><div>$ 200.00</div></td>
-            <td><div><input type="text" id="creditCard1Input" name="creditCard1Input" defaultValue={4342.00}></input></div></td>
+            <td  className="inputField"><div>{data.currency.currencySymbol}<input type="number" id="creditCard1" name="shortTermLiabilities" onKeyDown={(e) => checkKeyPressed(e, "liabilities")}></input></div></td>
           </tr>
           <tr>
             <td>Credit Card 2</td>
             <td><div>$ 150.00</div></td>
-            <td><div><input type="text" id="creditCard2Input" name="creditCard2Input" defaultValue={322.00}></input></div></td>
+            <td  className="inputField"><div>{data.currency.currencySymbol}<input type="number" id="creditCard2" name="shortTermLiabilities" onKeyDown={(e) => checkKeyPressed(e, "liabilities")}></input></div></td>
           </tr>
           <tr>
             <th>Long Term Debt</th>
@@ -244,32 +287,31 @@ function App() {
           <tr>
             <td>Mortage 1</td>
             <td><div>$ 2000.00</div></td>
-            <td><div><input type="text" id="mortgage1Input" name="mortgage1InputInput" defaultValue={250999.00}></input></div></td>
+            <td className="inputField"><div>{data.currency.currencySymbol}<input type="number" id="mortgage1" name="longTermDebt" onKeyDown={(e) => checkKeyPressed(e, "liabilities")}></input></div></td>
           </tr>
           <tr>
             <td>Mortage 2</td>
             <td><div>$ 3500.00</div></td>
-            <td><div><input type="text" id="mortgage2Input" name="mortgage2Input" defaultValue={632634.00}></input></div></td>
+            <td className="inputField"><div>{data.currency.currencySymbol}<input type="number" id="mortgage2" name="longTermDebt" onKeyDown={(e) => checkKeyPressed(e, "liabilities")}></input></div></td>
           </tr>
           <tr>
             <td>Line Of Credit</td>
             <td><div>$ 500.00</div></td>
-            <td><div><input type="text" id="lineOfCreditInput" name="lineOfCreditInput" defaultValue={10000.00}></input></div></td>
+            <td className="inputField"><div>{data.currency.currencySymbol}<input type="number" id="lineOfCredit" name="longTermDebt" onKeyDown={(e) => checkKeyPressed(e, "liabilities")}></input></div></td>
           </tr>
           <tr>
             <td>Investment Loan</td>
             <td><div>$ 700.00</div></td>
-            <td><div><input type="text" id="investmentLoanInput" name="investmentLoanInput" defaultValue={10000.00}></input></div></td>
+            <td className="inputField"><div>{data.currency.currencySymbol}<input type="number" id="investmentLoan" name="longTermDebt" onKeyDown={(e) => checkKeyPressed(e, "liabilities")}></input></div></td>
           </tr>
           <tr>
             <th>Total Liabilities</th>
             <tr></tr>
-            <td id="totalLiabilities">0.00</td>
+            <td id="totalLiabilities" className="totals"></td>
           </tr>
         </tbody>
       </table>
-      <button onClick={() => createLiabilities()}> Calculate Liabilities </button>
-      <button onClick={() => fetchTotals()}>Calculate Totals</button>
+      <button onClick={() => fetchTotals("POST", "http://localhost:5000/-net-worth/")}>Calculate Total Networth</button>
     </div>
   );
 }

@@ -1,8 +1,3 @@
-# TODO: add Response Status Codes
-# TODO: add "Liabilities"
-# TODO: split assets and liabilities into different ƒiles??
-# TODO: input validation - can be done in the frontend too ? send 0 if null ??
-# TODO: do error handling for missing user
 
 from flask import Flask, jsonify, request
 from flask_cors import CORS, cross_origin
@@ -21,50 +16,47 @@ app = Flask(__name__)
 cors = CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
 
-@app.route('/-net-worth/users/<int:userId>/', methods=['PUT'])
-@cross_origin()
-def put_currency(userId: int):
-  '''
-  calculate values in new currency
-  '''
+def create_response(data):
+    response = jsonify(data)
+    response.headers.add("Access-Control-Allow-Origin", "*")
+    return response
 
-  reqData = json.loads(request.data.decode('utf-8'))
+# APIs
+@app.route('/-net-worth/users/<int:userId>/', methods=['GET'])
+def get_data(userId: int):
+  '''
+  GET: returns data of user with the given user id
+  '''
   f = FileOperations()
   dataList = f.read_file()
 
   for userData in dataList:
     currUserId = userData.get('userId')
     if currUserId == userId:
-      c = ConvertCurrency()
-      updatedData = c.convert_currency(reqData, userData["currency"]["currencyCode"])
-      updatedData["userId"] = userId
-      dataList.remove(userData)
-      userData = updatedData
-      dataList.append(userData)
+      response = create_response(userData)
+      return response, 200
 
-  with open('data.txt', 'r+') as f:
-    f.seek(0)
-    f.write(json.dumps(dataList, indent=2))
+  # if no user was found, return error
+  error = {}
+  error["errorMsg"] = "User Not Found"
+  return jsonify(error), 404
 
-  response = jsonify(userData)
-
-  response.headers.add("Access-Control-Allow-Origin", "*")
-  response.headers.add("Access-Control-Allow-Methods", "PUT")
-  response.headers.add("Access-Control-Allow-Headers", "Content-Type, Authorization")
-  response.headers.add("Access-Control-Max-Age", "86400")
-  response.headers.add("Access-Control-Allow-Private-Network", "true")
-
-  return response
-
-# TODO: currency exchange - probs don't need it here, post is only for new enteries
-@app.route('/-net-worth/assets/', methods=['POST'])
+@app.route('/-net-worth/', methods=['POST'])
 def post_data():
   '''
-  add new users to the data
+  POST : add new users to the data
+  automatically creates a new UID for a new user
+  automatically calculates totals
   '''
-  # create new user
-  user = { "userId": uuid.uuid1().int }
   newData = json.loads(request.data.decode('utf-8'))
+
+  if "userId" in newData:
+    error = {}
+    error["errorMsg"] = "Incorrect data: POST request cannot have a user ID"
+    return jsonify(error), 400
+
+  # create new user
+  user = { "userId": int(str(uuid.uuid1().int)[:8])}
   newData.update(user)
 
   # calculate totals
@@ -83,28 +75,47 @@ def post_data():
   with open('data.txt', 'r+') as f:
     f.seek(0)
     f.write(json.dumps(dataList, indent=2))
+    f.truncate()
 
-  response = jsonify(newData)
-  response.headers.add("Access-Control-Allow-Origin", "*")
-  return response
+  response = create_response(newData)
+  return response, 200
 
-### Start of ASSETS
-
-# route() tells Flask which URL should trigger this function
-@app.route('/-net-worth/users/<int:userId>/assets/', methods=['GET'])
-def get_assets(userId: int):
+@app.route('/-net-worth/users/<int:userId>/', methods=['PUT'])
+@cross_origin()
+def put_currency(userId: int):
   '''
-  return assets of the user with the provided userId
+  PUT: calculates values of all input fields in the new currency value
   '''
+  reqData = json.loads(request.data.decode('utf-8'))
   f = FileOperations()
   dataList = f.read_file()
 
+  userFound = False
   for userData in dataList:
     currUserId = userData.get('userId')
     if currUserId == userId:
-      response = jsonify(userData["assets"])
-      response.headers.add("Access-Control-Allow-Origin", "*")
-      return response
+      userFound = True
+      c = ConvertCurrency()
+      updatedData = c.convert_currency(reqData, userData["currency"]["currencyCode"])
+      updatedData["userId"] = userId
+      dataList.remove(userData)
+      userData = updatedData
+      dataList.append(userData)
+      break
+
+  if not userFound:
+    error = {}
+    error["errorMsg"] = "User Not Found"
+    return jsonify(error), 404
+
+  with open('data.txt', 'r+') as f:
+    f.seek(0)
+    f.write(json.dumps(dataList, indent=2))
+    f.truncate()
+
+  response = create_response(userData)
+  return response, 200
+
 
 @app.route('/-net-worth/users/<int:userId>/assets/', methods=['PUT'])
 @cross_origin()
@@ -117,52 +128,44 @@ def put_assets(userId: int):
   f = FileOperations()
   dataList = f.read_file()
 
+  # check JSON data
+  if (not reqData["assets"]):
+    response = create_response(reqData)
+    return response, 400
+
+  userFound = False
   for userData in dataList:
     currUserId = userData.get('userId')
     if currUserId == userId:
+      userFound = True
       # calculate total assets
       t = Totals()
       totalAssets = t.calculate_total_assets_or_liabilities(reqData, "assets")
       reqData["assets"]["totalAssets"] = totalAssets
       # calculate new net worth
-      netWorth = t.calculate_total_networth(reqData["assets"]["totalAssets"],reqData["liabilities"]["totalLiabilities"])
+      netWorth = t.calculate_total_networth(reqData["assets"]["totalAssets"],userData["liabilities"]["totalLiabilities"])
       reqData["netWorth"] = netWorth
+      reqData["liabilities"] = userData["liabilities"]
       # update the data
       dataList.remove(userData)
       dataList.append(reqData)
+      break
+
+  # return error if user not found
+  if not userFound:
+    error = {}
+    error["errorMsg"] = "User Not Found"
+    return jsonify(error), 404
 
   # write the changes to the data file
   with open('data.txt', 'r+') as f:
     f.seek(0)
     f.write(json.dumps(dataList, indent=2))
+    f.truncate()
 
-  response = jsonify(reqData)
-
-  response.headers.add("Access-Control-Allow-Origin", "*")
-  response.headers.add("Access-Control-Allow-Methods", "PUT")
-  response.headers.add("Access-Control-Allow-Headers", "Content-Type, Authorization")
-  response.headers.add("Access-Control-Max-Age", "86400")
-  response.headers.add("Access-Control-Allow-Private-Network", "true")
-
+  response = create_response(reqData)
   return response
 
-### End of Assets
-
-### Start of LIABILITIES
-@app.route('/-net-worth/users/<int:userId>/liabilities/', methods=['GET'])
-def get_liabilities(userId: int):
-  '''
-  return assets of the user with the provided userId
-  '''
-  f = FileOperations()
-  dataList = f.read_file()
-
-  for userData in dataList:
-    currUserId = userData.get('userId')
-    if currUserId == userId:
-      response = jsonify(userData["liabilities"])
-      response.headers.add("Access-Control-Allow-Origin", "*")
-      return response
 
 @app.route('/-net-worth/users/<int:userId>/liabilities/', methods=['PUT'])
 @cross_origin()
@@ -175,64 +178,45 @@ def put_liabilities(userId: int):
   f = FileOperations()
   dataList = f.read_file()
 
+    # check JSON data
+  if (not reqData["liabilities"]):
+    response = create_response(reqData)
+    return response, 400
+
+  userFound =  False
   for userData in dataList:
     currUserId = userData.get('userId')
     if currUserId == userId:
       # calculate total liabilities
+      userFound = True
       t = Totals()
       totalLiabilities = t.calculate_total_assets_or_liabilities(reqData, "liabilities")
       reqData["liabilities"]["totalLiabilities"] = totalLiabilities
       # calculate new networth
-      netWorth = t.calculate_total_networth(reqData["assets"]["totalAssets"],reqData["liabilities"]["totalLiabilities"])
+      netWorth = t.calculate_total_networth(userData["assets"]["totalAssets"],reqData["liabilities"]["totalLiabilities"])
       reqData["netWorth"] = netWorth
+      reqData["assets"] = userData["assets"]
       # update the data
       dataList.remove(userData)
       dataList.append(reqData)
+      break
+
+  # return error if user not found
+  if not userFound:
+    error = {}
+    error["errorMsg"] = "User Not Found"
+    return jsonify(error), 404
 
     # write the changes to the data file
   with open('data.txt', 'r+') as f:
     f.seek(0)
     f.write(json.dumps(dataList, indent=2))
+    f.truncate()
 
-  response = jsonify(reqData)
-
-  response.headers.add("Access-Control-Allow-Origin", "*")
-  response.headers.add("Access-Control-Allow-Methods", "PUT")
-  response.headers.add("Access-Control-Allow-Headers", "Content-Type, Authorization")
-  response.headers.add("Access-Control-Max-Age", "86400")
-  response.headers.add("Access-Control-Allow-Private-Network", "true")
-
-  return response
+  response = create_response(reqData)
+  return response, 200
 
 if __name__ == "__main__":
   # run() runs the app in a local server, DO NOT use in production code
   app.run(debug=True)
 
-
-# @app.route('/-net-worth/assets/', methods=['POST'])
-# def post_assets():
-#   '''
-#   add new users to the data
-#   '''
-#   # create new user
-#   user = { "userId": uuid.uuid1().int }
-#   newData = json.loads(request.data.decode('utf-8'))
-#   newData.update(user)
-
-#   # calculate total assets
-#   t = Totals()
-#   totalAssets = t.calculate_total_assets(newData)
-#   newData["assets"]["totalAssets"] = totalAssets
-
-#   f = FileOperations()
-#   dataList = f.read_file()
-#   dataList.append(newData)
-
-#   # add new user and their data to the data file
-#   with open('data.txt', 'r+') as f:
-#     f.seek(0)
-#     f.write(json.dumps(dataList, indent=2))
-
-#   response = jsonify(newData)
-#   response.headers.add("Access-Control-Allow-Origin", "*")
-#   return response

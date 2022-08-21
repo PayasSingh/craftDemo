@@ -3,7 +3,7 @@ class Totals:
 
   def calculate_total_assets_or_liabilities(self, data, typeOfData):
     '''
-    calculate total assets
+    calculate total assets or liabilities
     '''
     total = 0.0
 
@@ -13,14 +13,14 @@ class Totals:
         field = typeOfData[obj]
         for key, item in field.items():
           if item != " ":
-            total += float(item)
+            total += round(float(item), 2)
 
-    return total
+    return str(total)
 
   def calculate_total_networth(self, assets, liabilities):
     '''
-    calculate total
+    calculate total networth
     '''
-    total = assets - liabilities
+    total = round(float(assets) - float(liabilities), 2)
 
-    return total
+    return str(total)
