@@ -156,7 +156,10 @@ function App() {
     if (e.keyCode === 13) {
       e.preventDefault();
       let inputValue = e.target.value
-      data[dataType][e.target.name][e.target.id] = inputValue ? inputValue : 0.00;
+      // clean input
+      let pattern = /[^0-9|\.]/g
+      let cleanInput = inputValue.replace(pattern, '')
+      data[dataType][e.target.name][e.target.id] = cleanInput ? cleanInput : "0.00";
       var api = "http://localhost:5000/-net-worth/users/" + data.userId + "/" + dataType+ "/";
       fetchTotals("PUT", api, dataType)
     }
@@ -209,54 +212,54 @@ function App() {
               </tr>
               <tr>
                 <td>Chequing</td>
-                <td><div className="inputField">{data.currency.currencySymbol}<input type="number" id="chequing" name="cashAndInvestments" onKeyDown={(e) => checkKeyPressed(e, "assets")}></input></div></td>
+                <td><div className="inputField">{data.currency.currencySymbol}<input type="text" id="chequing" name="cashAndInvestments" onKeyDown={(e) => checkKeyPressed(e, "assets")}></input></div></td>
               </tr>
               <tr>
                 <td>Savings for Taxes</td>
-                <td className="inputField"><div>{data.currency.currencySymbol}<input type="number" id="savingsForTaxes" name="cashAndInvestments"  onKeyDown={(e) => checkKeyPressed(e, "assets")}></input></div></td>
+                <td className="inputField"><div>{data.currency.currencySymbol}<input type="text" id="savingsForTaxes" name="cashAndInvestments"  onKeyDown={(e) => checkKeyPressed(e, "assets")}></input></div></td>
               </tr>
               <tr>
                 <td>Rainy Day Fund</td>
-                <td className="inputField"><div>{data.currency.currencySymbol}<input type="number" id="rainyDayFund" name="cashAndInvestments" onKeyDown={(e) => checkKeyPressed(e, "assets")}></input></div></td>
+                <td className="inputField"><div>{data.currency.currencySymbol}<input type="text" id="rainyDayFund" name="cashAndInvestments" onKeyDown={(e) => checkKeyPressed(e, "assets")}></input></div></td>
               </tr>
               <tr>
                 <td>Savings for Fun</td>
-                <td className="inputField"><div>{data.currency.currencySymbol}<input type="number" id="savingsForFun" name="cashAndInvestments" onKeyDown={(e) => checkKeyPressed(e, "assets")}></input></div></td>
+                <td className="inputField"><div>{data.currency.currencySymbol}<input type="text" id="savingsForFun" name="cashAndInvestments" onKeyDown={(e) => checkKeyPressed(e, "assets")}></input></div></td>
               </tr>
               <tr>
                 <td>Savings for Travel</td>
-                <td className="inputField"><div>{data.currency.currencySymbol}<input type="number" id="savingsForTravel" name="cashAndInvestments" onKeyDown={(e) => checkKeyPressed(e, "assets")}></input></div></td>
+                <td className="inputField"><div>{data.currency.currencySymbol}<input type="text" id="savingsForTravel" name="cashAndInvestments" onKeyDown={(e) => checkKeyPressed(e, "assets")}></input></div></td>
               </tr>
               <tr>
                 <td>Savings for Personal Development</td>
-                <td className="inputField"><div>{data.currency.currencySymbol}<input type="number" id="savingsForPersonalDevelopment" name="cashAndInvestments" onKeyDown={(e) => checkKeyPressed(e, "assets")}></input></div></td>
+                <td className="inputField"><div>{data.currency.currencySymbol}<input type="text" id="savingsForPersonalDevelopment" name="cashAndInvestments" onKeyDown={(e) => checkKeyPressed(e, "assets")}></input></div></td>
               </tr>
               <tr>
                 <td>Investment 1</td>
-                <td className="inputField"><div>{data.currency.currencySymbol}<input type="number" id="investment1" name="cashAndInvestments" onKeyDown={(e) => checkKeyPressed(e, "assets")}></input></div></td>
+                <td className="inputField"><div>{data.currency.currencySymbol}<input type="text" id="investment1" name="cashAndInvestments" onKeyDown={(e) => checkKeyPressed(e, "assets")}></input></div></td>
               </tr>
               <tr>
                 <td>Investment 2</td>
-                <td className="inputField"><div>{data.currency.currencySymbol}<input type="number" id="investment2" name="cashAndInvestments" onKeyDown={(e) => checkKeyPressed(e, "assets")}></input></div></td>
+                <td className="inputField"><div>{data.currency.currencySymbol}<input type="text" id="investment2" name="cashAndInvestments" onKeyDown={(e) => checkKeyPressed(e, "assets")}></input></div></td>
               </tr>
               <tr>
                 <td>Investment 3</td>
-                <td className="inputField"><div>{data.currency.currencySymbol}<input type="number" id="investment3" name="cashAndInvestments" onKeyDown={(e) => checkKeyPressed(e, "assets")}></input></div></td>
+                <td className="inputField"><div>{data.currency.currencySymbol}<input type="text" id="investment3" name="cashAndInvestments" onKeyDown={(e) => checkKeyPressed(e, "assets")}></input></div></td>
               </tr>
               <tr>
                 <th>Long Term Assets</th>
               </tr>
               <tr>
                 <td>Primary Home</td>
-                <td  className="inputField"><div>{data.currency.currencySymbol}<input type="number" id="primaryHome" name="longTermAssets" onKeyDown={(e) => checkKeyPressed(e, "assets")}></input></div></td>
+                <td  className="inputField"><div>{data.currency.currencySymbol}<input type="text" id="primaryHome" name="longTermAssets" onKeyDown={(e) => checkKeyPressed(e, "assets")}></input></div></td>
               </tr>
               <tr>
                 <td>Second Home</td>
-                <td className="inputField"><div>{data.currency.currencySymbol}<input type="number" id="secondHome" name="longTermAssets" onKeyDown={(e) => checkKeyPressed(e, "assets")}></input></div></td>
+                <td className="inputField"><div>{data.currency.currencySymbol}<input type="text" id="secondHome" name="longTermAssets" onKeyDown={(e) => checkKeyPressed(e, "assets")}></input></div></td>
               </tr>
               <tr>
                 <td>Other</td>
-                <td className="inputField"><div>{data.currency.currencySymbol}<input type="number" id="other" name="longTermAssets" onKeyDown={(e) => checkKeyPressed(e, "assets")}></input></div></td>
+                <td className="inputField"><div>{data.currency.currencySymbol}<input type="text" id="other" name="longTermAssets" onKeyDown={(e) => checkKeyPressed(e, "assets")}></input></div></td>
               </tr>
               <tr>
                 <th>Total Assets</th>
@@ -274,12 +277,12 @@ function App() {
           <tr>
             <td>Credit Card 1</td>
             <td><div>$ 200.00</div></td>
-            <td  className="inputField"><div>{data.currency.currencySymbol}<input type="number" id="creditCard1" name="shortTermLiabilities" onKeyDown={(e) => checkKeyPressed(e, "liabilities")}></input></div></td>
+            <td  className="inputField"><div>{data.currency.currencySymbol}<input type="text" id="creditCard1" name="shortTermLiabilities" onKeyDown={(e) => checkKeyPressed(e, "liabilities")}></input></div></td>
           </tr>
           <tr>
             <td>Credit Card 2</td>
             <td><div>$ 150.00</div></td>
-            <td  className="inputField"><div>{data.currency.currencySymbol}<input type="number" id="creditCard2" name="shortTermLiabilities" onKeyDown={(e) => checkKeyPressed(e, "liabilities")}></input></div></td>
+            <td  className="inputField"><div>{data.currency.currencySymbol}<input type="text" id="creditCard2" name="shortTermLiabilities" onKeyDown={(e) => checkKeyPressed(e, "liabilities")}></input></div></td>
           </tr>
           <tr>
             <th>Long Term Debt</th>
@@ -287,22 +290,22 @@ function App() {
           <tr>
             <td>Mortage 1</td>
             <td><div>$ 2000.00</div></td>
-            <td className="inputField"><div>{data.currency.currencySymbol}<input type="number" id="mortgage1" name="longTermDebt" onKeyDown={(e) => checkKeyPressed(e, "liabilities")}></input></div></td>
+            <td className="inputField"><div>{data.currency.currencySymbol}<input type="text" id="mortgage1" name="longTermDebt" onKeyDown={(e) => checkKeyPressed(e, "liabilities")}></input></div></td>
           </tr>
           <tr>
             <td>Mortage 2</td>
             <td><div>$ 3500.00</div></td>
-            <td className="inputField"><div>{data.currency.currencySymbol}<input type="number" id="mortgage2" name="longTermDebt" onKeyDown={(e) => checkKeyPressed(e, "liabilities")}></input></div></td>
+            <td className="inputField"><div>{data.currency.currencySymbol}<input type="text" id="mortgage2" name="longTermDebt" onKeyDown={(e) => checkKeyPressed(e, "liabilities")}></input></div></td>
           </tr>
           <tr>
             <td>Line Of Credit</td>
             <td><div>$ 500.00</div></td>
-            <td className="inputField"><div>{data.currency.currencySymbol}<input type="number" id="lineOfCredit" name="longTermDebt" onKeyDown={(e) => checkKeyPressed(e, "liabilities")}></input></div></td>
+            <td className="inputField"><div>{data.currency.currencySymbol}<input type="text" id="lineOfCredit" name="longTermDebt" onKeyDown={(e) => checkKeyPressed(e, "liabilities")}></input></div></td>
           </tr>
           <tr>
             <td>Investment Loan</td>
             <td><div>$ 700.00</div></td>
-            <td className="inputField"><div>{data.currency.currencySymbol}<input type="number" id="investmentLoan" name="longTermDebt" onKeyDown={(e) => checkKeyPressed(e, "liabilities")}></input></div></td>
+            <td className="inputField"><div>{data.currency.currencySymbol}<input type="text" id="investmentLoan" name="longTermDebt" onKeyDown={(e) => checkKeyPressed(e, "liabilities")}></input></div></td>
           </tr>
           <tr>
             <th>Total Liabilities</th>

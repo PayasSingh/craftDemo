@@ -34,14 +34,17 @@ class ConvertCurrency:
           subField = fields[field]
           for key, item in subField.items():
             if item != " ":
+              item = item.translate(str.maketrans('','',','))
               convertedNumber = round(float(item) * rate,2)
               formattedCurrency = self.format_currency(convertedNumber, newCurrency)
               fields[field][key] = str(formattedCurrency)
         else:
+          fields[field] = fields[field].translate(str.maketrans('','',','))
           convertedNumber = round(float(fields[field]) * rate,2)
           formattedCurrency = self.format_currency(convertedNumber, newCurrency)
           fields[field] = str(formattedCurrency)
 
+    data["netWorth"] = data["netWorth"].translate(str.maketrans('','',','))
     convertedNumber = round(float(data["netWorth"]) * rate,2)
     formattedCurrency = self.format_currency(convertedNumber, newCurrency)
     data["netWorth"] = str(formattedCurrency)

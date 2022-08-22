@@ -2,7 +2,7 @@ import babel.numbers
 import sys,os
 
 sys.path.insert(0, os.getcwd() + '/helpers')
-print(os.getcwd())
+
 from convertCurrency import ConvertCurrency
 
 class Totals:

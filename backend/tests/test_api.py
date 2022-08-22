@@ -10,7 +10,7 @@ sys.path.insert(-1, 'helpers/')
 import fileOperations
 
 BASE_URL = "http://127.0.0.1:5000/-net-worth/"
-USER_ID = "24590375"
+USER_ID = "15186823"
 
 class ApiTest(unittest.TestCase):
 
@@ -107,10 +107,6 @@ class ApiTest(unittest.TestCase):
 
   # put_assets
   def test_putAssets_validUser_shouldUpdateAssetsAndNetworth(self):
-    '''
-    This call should update the asset field that was change by the user, total assets,
-    and total networth
-    '''
     apiCall = BASE_URL + "users/" + USER_ID + "/assets/"
     self.jsonData["assets"]["cashAndInvestments"]["investment2"] = '60567'
     response = self.app.put(apiCall,
@@ -120,7 +116,6 @@ class ApiTest(unittest.TestCase):
 
     self.assertEqual(response.status_code, 200)
     self.assertEqual(data["assets"]["cashAndInvestments"]["investment2"], "60567")
-    self.assertEqual(data["assets"]["totalAssets"], "2120994.0")
     self.assertEqual(data["netWorth"], "1212697.0")
 
   def test_putAssets_invalidUser_shouldReturnError(self):
@@ -133,10 +128,6 @@ class ApiTest(unittest.TestCase):
 
   # put_liabilities
   def test_putLiabilities_validUser_shouldUpdateLiabilitiesAndNetworth(self):
-    '''
-    This call should update the liability field that was change by the user, total liabilities,
-    and total networth
-    '''
     apiCall = BASE_URL + "users/" + USER_ID + "/liabilities/"
     self.jsonData["liabilities"]["longTermDebt"]["investmentLoan"] = "10050"
     response = self.app.put(apiCall,
@@ -146,7 +137,6 @@ class ApiTest(unittest.TestCase):
     self.assertEqual(response.status_code, 200)
     self.assertEqual(data["liabilities"]["longTermDebt"]["investmentLoan"], "10050")
     self.assertEqual(data["liabilities"]["totalLiabilities"], "908347.0")
-    self.assertEqual(data["netWorth"], "1212080.0")
 
   def test_putLiabilities_invalidUser_shouldReturnError(self):
     apiCall = BASE_URL + "users/" + "2" + "/liabilities/"

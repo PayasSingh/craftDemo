@@ -19,7 +19,7 @@ app.config['CORS_HEADERS'] = 'Content-Type'
 
 def create_response(data):
     response = jsonify(data)
-    response.headers.add("Access-Control-Allow-Origin", "*")
+    # response.headers.add("Access-Control-Allow-Origin", "*")
     return response
 
 # APIs
