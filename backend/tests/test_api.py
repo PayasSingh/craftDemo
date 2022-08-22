@@ -1,39 +1,22 @@
 import unittest
 from copy import deepcopy
-import sys
 import json
+import sys, os
 
-sys.path.insert(0, '/Users/payassingh/Desktop/net-worth-calculator/backend/')
-
+sys.path.insert(0, os.getcwd())
 import server as app
 
+sys.path.insert(-1, 'helpers/')
+import fileOperations
+
+BASE_URL = "http://127.0.0.1:5000/-net-worth/"
+USER_ID = "24590375"
 
 class ApiTest(unittest.TestCase):
 
   def setUp(self):
     self.app = app.app.test_client()
     self.app.testing = True
-    self.jsonAssets = {
-      "assets": {
-        "cashAndInvestments": {
-          "chequing": "2000",
-          "savingsForTaxes": "4000",
-          "rainyDayFund": "506",
-          "savingsForFun": "5000",
-          "savingsForTravel": "400",
-          "savingsForPersonalDevelopment": "200",
-          "investment1": "5000",
-          "investment2": "60000",
-          "investment3": "24000"
-        },
-        "longTermAssets": {
-          "primaryHome": "455000",
-          "secondHome": "1564321",
-          "other": "0"
-        },
-        "totalAssets": "0"
-        }
-    }
     self.jsonData = {
       "assets": {
         "cashAndInvestments": {
@@ -74,30 +57,38 @@ class ApiTest(unittest.TestCase):
         "netWorth": "0",
         "userId": 24590375
       }
+    f = fileOperations.FileOperations()
+    self.dataList = f.read_file()
 
   # get_data
   def test_getData_validUser_shouldReturnUser(self):
-    response = self.app.get("http://127.0.0.1:5000/-net-worth/users/24590375/")
+    apiCall = BASE_URL + "users/" + USER_ID + "/"
+    response = self.app.get(apiCall)
     data = json.loads(response.get_data())
     self.assertEqual(response.status_code, 200)
 
   def test_getData_invalidUser_shouldReturnError(self):
-    response = self.app.get("http://127.0.0.1:5000/-net-worth/users/2/")
+    apiCall = BASE_URL + "users/" + "2" + "/"
+    response = self.app.get(apiCall)
     data = json.loads(response.get_data())
     self.assertEqual(response.status_code, 404)
 
   # post_data
   def test_postData_noUserId_shouldCreateNewUser(self):
+    apiCall = BASE_URL
+
     del self.jsonData["userId"]
-    response = self.app.post("http://127.0.0.1:5000/-net-worth/",
+    response = self.app.post(apiCall,
       data=json.dumps(self.jsonData),
       content_type='application/json')
     data = json.loads(response.get_data())
     self.assertEqual(response.status_code, 200)
 
   def test_postData_noUserId_shouldCalculateTotals(self):
+    apiCall = BASE_URL
+
     del self.jsonData["userId"]
-    response = self.app.post("http://127.0.0.1:5000/-net-worth/",
+    response = self.app.post(BASE_URL,
       data=json.dumps(self.jsonData),
       content_type='application/json')
     data = json.loads(response.get_data())
@@ -106,23 +97,89 @@ class ApiTest(unittest.TestCase):
     self.assertEqual(data["netWorth"], "1212130.0")
 
   def test_postData_withUser_shouldReturnError(self):
-    response = self.app.post("http://127.0.0.1:5000/-net-worth/",
+    apiCall = BASE_URL
+
+    response = self.app.post(BASE_URL,
       data=json.dumps(self.jsonData),
       content_type='application/json')
     data = json.loads(response.get_data())
     self.assertEqual(response.status_code, 400)
 
   # put_assets
-  def test_putAssets_validUser_shouldUpdateTotalAssetsAndNetworth(self):
-    self.jsonAssets["assets"]["cashAndInvestments"]["investment2"] = '60567'
-    response = self.app.put("http://127.0.0.1:5000/-net-worth/users/24590375/assets/",
-      data=json.dumps(self.jsonAssets),
+  def test_putAssets_validUser_shouldUpdateAssetsAndNetworth(self):
+    '''
+    This call should update the asset field that was change by the user, total assets,
+    and total networth
+    '''
+    apiCall = BASE_URL + "users/" + USER_ID + "/assets/"
+    self.jsonData["assets"]["cashAndInvestments"]["investment2"] = '60567'
+    response = self.app.put(apiCall,
+      data=json.dumps(self.jsonData),
       content_type='application/json')
     data = json.loads(response.get_data())
-    print(data)
+
+    self.assertEqual(response.status_code, 200)
+    self.assertEqual(data["assets"]["cashAndInvestments"]["investment2"], "60567")
     self.assertEqual(data["assets"]["totalAssets"], "2120994.0")
     self.assertEqual(data["netWorth"], "1212697.0")
 
+  def test_putAssets_invalidUser_shouldReturnError(self):
+    apiCall = BASE_URL + "users/" + "2" + "/assets/"
+    response = self.app.put(apiCall,
+      data=json.dumps(self.jsonData),
+      content_type='application/json')
+    data = json.loads(response.get_data())
+    self.assertEqual(response.status_code, 404)
+
+  # put_liabilities
+  def test_putLiabilities_validUser_shouldUpdateLiabilitiesAndNetworth(self):
+    '''
+    This call should update the liability field that was change by the user, total liabilities,
+    and total networth
+    '''
+    apiCall = BASE_URL + "users/" + USER_ID + "/liabilities/"
+    self.jsonData["liabilities"]["longTermDebt"]["investmentLoan"] = "10050"
+    response = self.app.put(apiCall,
+      data=json.dumps(self.jsonData),
+      content_type='application/json')
+    data = json.loads(response.get_data())
+    self.assertEqual(response.status_code, 200)
+    self.assertEqual(data["liabilities"]["longTermDebt"]["investmentLoan"], "10050")
+    self.assertEqual(data["liabilities"]["totalLiabilities"], "908347.0")
+    self.assertEqual(data["netWorth"], "1212080.0")
+
+  def test_putLiabilities_invalidUser_shouldReturnError(self):
+    apiCall = BASE_URL + "users/" + "2" + "/liabilities/"
+    response = self.app.put(apiCall,
+      data=json.dumps(self.jsonData),
+      content_type='application/json')
+    data = json.loads(response.get_data())
+    self.assertEqual(response.status_code, 404)
+
+  # put_currency
+  def test_putCurrency_validUser_ReturnNewValues(self):
+    apiCall = BASE_URL + "users/" + USER_ID + "/"
+    self.jsonData["currency"]["currencyCode"] = "EUR"
+    response = self.app.put(apiCall,
+      data=json.dumps(self.jsonData),
+      content_type='application/json')
+    data = json.loads(response.get_data())
+    self.assertEqual(response.status_code, 200)
+    self.assertEqual(data["currency"]["currencySymbol"], "€")
+    self.assertEqual(data["assets"]["cashAndInvestments"]["chequing"], "1,531.16")
+
+  def test_putCurrency_invalidUser_shouldReturnError(self):
+    apiCall = BASE_URL + "users/" + "2" + "/"
+    response = self.app.put(apiCall,
+      data=json.dumps(self.jsonData),
+      content_type='application/json')
+    data = json.loads(response.get_data())
+    self.assertEqual(response.status_code, 404)
+
+  def tearDown(self):
+    # reset data.txt to it's initial state
+    f = fileOperations.FileOperations()
+    f.write_file(self.dataList)
 
 if __name__ == '__main__':
   unittest.main()

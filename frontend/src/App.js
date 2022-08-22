@@ -311,7 +311,7 @@ function App() {
           </tr>
         </tbody>
       </table>
-      <button onClick={() => fetchTotals("POST", "http://localhost:5000/-net-worth/")}>Calculate Total Networth</button>
+      <button onClick={() => fetchTotals("POST", "http://localhost:5000/-net-worth/")}>Create New User</button>
     </div>
   );
 }

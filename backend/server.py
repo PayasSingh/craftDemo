@@ -3,9 +3,10 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS, cross_origin
 import json
 import uuid
-import sys
+import sys, os
 
-sys.path.insert(0, '/Users/payassingh/Desktop/net-worth-calculator/backend/helpers')
+sys.path.insert(0, os.getcwd() +'/helpers')
+import os
 
 from totals import Totals
 from convertCurrency import ConvertCurrency
@@ -65,7 +66,7 @@ def post_data():
   newData["assets"]["totalAssets"] = totalAssets
   totalLiabilities = t.calculate_total_assets_or_liabilities(newData, "liabilities")
   newData["liabilities"]["totalLiabilities"] = totalLiabilities
-  newData["netWorth"] = t.calculate_total_networth(totalAssets, totalLiabilities)
+  newData["netWorth"] = t.calculate_total_networth(totalAssets, totalLiabilities, newData["currency"]["currencyCode"])
 
   f = FileOperations()
   dataList = f.read_file()
@@ -143,7 +144,7 @@ def put_assets(userId: int):
       totalAssets = t.calculate_total_assets_or_liabilities(reqData, "assets")
       reqData["assets"]["totalAssets"] = totalAssets
       # calculate new net worth
-      netWorth = t.calculate_total_networth(reqData["assets"]["totalAssets"],userData["liabilities"]["totalLiabilities"])
+      netWorth = t.calculate_total_networth(reqData["assets"]["totalAssets"],userData["liabilities"]["totalLiabilities"], reqData["currency"]["currencyCode"])
       reqData["netWorth"] = netWorth
       reqData["liabilities"] = userData["liabilities"]
       # update the data
@@ -193,7 +194,7 @@ def put_liabilities(userId: int):
       totalLiabilities = t.calculate_total_assets_or_liabilities(reqData, "liabilities")
       reqData["liabilities"]["totalLiabilities"] = totalLiabilities
       # calculate new networth
-      netWorth = t.calculate_total_networth(userData["assets"]["totalAssets"],reqData["liabilities"]["totalLiabilities"])
+      netWorth = t.calculate_total_networth(userData["assets"]["totalAssets"],reqData["liabilities"]["totalLiabilities"], reqData["currency"]["currencyCode"])
       reqData["netWorth"] = netWorth
       reqData["assets"] = userData["assets"]
       # update the data

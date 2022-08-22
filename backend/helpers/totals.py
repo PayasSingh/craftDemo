@@ -1,3 +1,9 @@
+import babel.numbers
+import sys,os
+
+sys.path.insert(0, os.getcwd() + '/helpers')
+print(os.getcwd())
+from convertCurrency import ConvertCurrency
 
 class Totals:
 
@@ -5,6 +11,7 @@ class Totals:
     '''
     calculate total assets or liabilities
     '''
+    c = ConvertCurrency()
     total = 0.0
 
     typeOfData = data[typeOfData]
@@ -13,14 +20,17 @@ class Totals:
         field = typeOfData[obj]
         for key, item in field.items():
           if item != " ":
+            item = item.translate(str.maketrans('','',','))
             total += round(float(item), 2)
 
     return str(total)
 
-  def calculate_total_networth(self, assets, liabilities):
+  def calculate_total_networth(self, assets, liabilities, currency):
     '''
     calculate total networth
     '''
+    assets = assets.translate(str.maketrans('','',','))
+    liabilities = liabilities.translate(str.maketrans('','',','))
     total = round(float(assets) - float(liabilities), 2)
 
     return str(total)

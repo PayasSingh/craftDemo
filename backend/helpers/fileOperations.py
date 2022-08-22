@@ -1,5 +1,8 @@
 import json
 from json.decoder import JSONDecodeError
+import sys,os
+
+sys.path.insert(0, os.getcwd())
 
 
 class FileOperations():
@@ -8,7 +11,7 @@ class FileOperations():
     '''
     open the data file, read it and convert it to JSON Object form JSON string
     '''
-    with open("/Users/payassingh/Desktop/net-worth-calculator/backend/data.txt", "r+") as f:
+    with open("data.txt", "r+") as f:
       try:
         data = json.load(f)
         f.seek(0)
@@ -18,3 +21,12 @@ class FileOperations():
         data = json.load(f)
 
     return data
+
+  def write_file(self, dataList):
+    '''
+    open data file and write new data to it
+    '''
+    with open('data.txt', 'r+') as f:
+      f.seek(0)
+      f.write(json.dumps(dataList, indent=2))
+      f.truncate()
